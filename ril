@@ -26,6 +26,6 @@ wait(1.5)
 for _, x in pairs(games) do
     if x == game.PlaceId then
         notify("DemiseHub","Found!","Playing: ".._,11310622169,"75, 100, 200")
-        loadstring(game:HttpGet("https://github.com/Joqsa/DemiseHubV1/tree/main/games"..x))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Joqsa/DemiseHubV1/tree/main/games/"..x))()
     end
 end
