@@ -1,5 +1,3 @@
----------- Paradise Hub v1.2 ----------
-
 -- Configuration
 local Config = {
     Name = "DemiseHub (Experimental)"
