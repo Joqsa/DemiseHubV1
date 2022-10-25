@@ -1,0 +1,31 @@
+local notif = loadstring(game:HttpGet("https://raw.githubusercontent.com/Valenity/NotificationUI/main/Cheater.FunAreLeeches!"))()
+function notify(Welcome,title,description,icon,color)
+    notif:message {
+        Title = Welcome.." | <font color='rgb(".. color ..")'>"..title.."</font>",
+        Description = description,
+        Icon = icon
+    }
+end
+local games = {
+    ["Halloween Night"] = 1046190774,
+    ["Lemonade Tycoon"] = 10675042838,
+    ["Slime Tower Tycoon"] = 10675066724,
+    ["Racing Rocket"] = 10676523834,
+    ["Merge Simulator"] = 10925589760,
+    ["Robowling"] = 340227283,
+    ["Theme Park Tycoon 2"] = 69184822,
+    ["Idle Heroes"] = 9264596435,
+    ["High School Life"] = 92604236,
+    ["Truck Factory Tycoon"] = 10893141806,
+    ["Islands"] = 4872321990,
+    ["Islands (Hub)"] = 5899156129
+ }
+
+notify("DemiseHub","Initiating","Loading DemiseHub!",11310622169,"255, 100, 100")
+wait(1.5)
+for _, x in pairs(games) do
+    if x == game.PlaceId then
+        notify("DemiseHub","Found!","Playing: ".._,11310622169,"75, 100, 200")
+        loadstring(game:HttpGet("https://github.com/Joqsa/DemiseHubV1/tree/main/games/"..x))()
+    end
+end
