@@ -1,0 +1,521 @@
+---------- Paradise Hub v1.2 ----------
+
+-- Configuration
+local Config = {
+    Name = "DemiseHub (Experimental)"
+}
+
+---------------------------------------
+
+-- Loadstrings
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+---------------------------------------
+
+-- Variables
+local TweenService = game:GetService("TweenService")
+local _NetManaged = game:GetService("ReplicatedStorage")["rbxts_include"]["node_modules"].net.out["_NetManaged"]
+local player = game:GetService("Players").LocalPlayer
+local HumanoidRootPart = player.Character.HumanoidRootPart
+local islanduuid = nil
+local totemtweenspeed = 2
+local mineoretweenspeed = 2
+local HarvestAndPlantTweenSpeed = 2
+
+---------------------------------------
+
+-- Create UI
+local Window = Library:CreateWindow(Config)
+
+---------------------------------------
+function GrabTotem(totem,ore)
+    for _, x in pairs(islanduuid.Blocks:GetChildren()) do
+        if x.Name == totem then
+            if x.WorkerContents:FindFirstChild(ore) ~= nil then
+                local Info = TweenInfo.new(totemtweenspeed,Enum.EasingStyle.Linear,Enum.EasingDirection.In)
+                local Tweens = {
+                    CFrame = x.CFrame
+                }
+                local Tween = TweenService:Create(HumanoidRootPart,Info,Tweens)
+                Tween:Play()
+                local Data = {
+                    ["tool"] = x.WorkerContents:FindFirstChild(ore)
+                }
+                _NetManaged.CLIENT_TOOL_PICKUP_REQUEST:InvokeServer(Data)
+                task.wait(0.1)
+            end
+        end
+    end    
+end
+---------------------------------------
+function MineOre(ore)
+    for _, x in pairs(islanduuid.Blocks:GetChildren()) do
+        if x.Name == ore then
+            local Info = TweenInfo.new(mineoretweenspeed,Enum.EasingStyle.Linear,Enum.EasingDirection.In)
+            local Tweens = {
+                CFrame = x.CFrame
+            }
+            local Tween = TweenService:Create(HumanoidRootPart,Info,Tweens)
+            Tween:Play()
+            if x.Name == ore then
+                local Data = {
+                    ["part"] = x[1],
+                    ["block"] = x,
+                    ["norm"] = x.CFrame,
+                    ["pos"] = x.Position
+                }
+            _NetManaged.CLIENT_BLOCK_HIT_REQUEST:InvokeServer(Data)
+            end
+            task.wait(0.1)
+        end
+    end    
+end
+---------------------------------------
+function HarvestAndPlant(plant)
+    for _, x in pairs(islanduuid.Blocks:GetChildren()) do
+        if x.Name == plant then
+            if x:FindFirstChild("stage-3") ~= nil then
+                if x["stage-3"].Harvestable.Value == true then
+                    local Info = TweenInfo.new(HarvestAndPlantTweenSpeed,Enum.EasingStyle.Linear,Enum.EasingDirection.In)
+                    local Tweens = {
+                        CFrame = x.CFrame
+                    }
+                    local Tween = TweenService:Create(HumanoidRootPart,Info,Tweens)
+                    Tween:Play()
+                    local arg =  {
+                        ["player"] = player,
+                        ["model"] = x
+                    }
+                    _NetManaged["CLIENT_HARVEST_CROP_REQUEST"]:InvokeServer(arg)
+                    task.wait(0.1)
+                    local ar =  {
+                        ["upperBlock"] = false, 
+                        ["cframe"] = x.CFrame, 
+                        ["blockType"] = plant
+                    }
+                    _NetManaged["CLIENT_BLOCK_PLACE_REQUEST"]:InvokeServer(ar)
+                    task.wait(0.1)
+                end
+            end
+        end
+    end
+end
+---------------------------------------
+
+-- Add Tab
+local Main = Window:CreateTab("Main Menu")
+local Farming = Window:CreateTab("Farm Menu")
+local Mining = Window:CreateTab("Mining Menu")
+local Totem = Window:CreateTab("Totem Menu")
+local Mobs = Window:CreateTab("Mob Menu")
+local Teleport = Window:CreateTab("Teleport Menu")
+---------------------------------------
+-- Script Start
+---------------------------------------
+Totem:CreateSlider({
+	Name = "Custom Tween Speed",
+	Range = {0, 20},
+	Increment = 0.01,
+	Suffix = "Seconds",
+	CurrentValue = 2,
+	Callback = function(Value)
+    totemtweenspeed = Value
+	end,
+})
+---------------------------------------
+Farming:CreateSlider({
+	Name = "Custom Tween Speed",
+	Range = {0, 20},
+	Increment = 0.01,
+	Suffix = "Seconds",
+	CurrentValue = 2,
+	Callback = function(Value)
+    HarvestAndPlantTweenSpeed = Value
+	end,
+})
+---------------------------------------
+Mining:CreateSlider({
+	Name = "Custom Tween Speed",
+	Range = {0, 20},
+	Increment = 0.01,
+	Suffix = "Seconds",
+	CurrentValue = 2,
+	Callback = function(Value)
+    mineoretweenspeed = Value
+	end,
+})
+---------------------------------------
+
+Totem:CreateLabel("Note: These are not meant to be instant by any means, it uses TweenService to bypass the teleport anti-cheat.")
+Totem:CreateToggle({
+    Name = "Grab Iron Totem Contents", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().totemiron = value
+        while getgenv().totemiron == true do
+            task.wait()
+            GrabTotem("totemIron","ironOre")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+---------------------------------------
+Totem:CreateToggle({
+    Name = "Grab Coal Totem Contents", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().Coal = value
+        while getgenv().Coal == true do
+            task.wait()
+            GrabTotem("totemCoal","coal")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+---------------------------------------
+Totem:CreateToggle({
+    Name = "Grab Clay Totem Contents", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().Clay = value
+        while getgenv().Clay == true do
+            task.wait()
+            GrabTotem("totemClay","clay")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+---------------------------------------
+Mining:CreateLabel("Have your Pickaxe Equipped!")
+Mining:CreateLabel("Note: These are not meant to be instant by any means, it uses TweenService to bypass the teleport anti-cheat.")
+Mining:CreateToggle({
+    Name = "Mine Iron", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().rock = value
+        while getgenv().rock == true do
+            task.wait()
+            MineOre("rockIron")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+---------------------------------------
+Mining:CreateToggle({
+    Name = "Mine Clay", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().rockClay = value
+        while getgenv().rockClay == true do
+            task.wait()
+            MineOre("rockClay")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+---------------------------------------
+Mining:CreateToggle({
+    Name = "Mine Coal", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().Coal = value
+        while getgenv().Coal == true do
+            task.wait()
+            MineOre("rockCoal")        
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+---------------------------------------
+Main:CreateButton({
+    Name = "Grab Island ID", 
+    Callback = function()
+        for _, x in pairs(game:GetService("Workspace").Islands:GetChildren()) do
+            for _, v in pairs(x:GetChildren()) do
+                if v.Name == "Owners" then
+                    if v:FindFirstChild(player.UserId) ~= nil then
+                        islanduuid = v.Parent
+                        game:GetService("CoreGui").Rayfield.Main.Elements["Main Menu"].Label.Title.Text = "Island UUID: "..tostring(islanduuid)
+                        Library:Notify("Island UUID","Grabbed ID: "..tostring(islanduuid))
+                    end
+                end
+            end
+        end
+    end,
+})
+Main:CreateLabel("Island UUID: "..tostring(islanduuid))
+------------
+local Spazz = Main:CreateSection("Spazz Features")
+Main:CreateToggle({
+    Name = "Visual Lag", 
+    CurrentValue = false,
+    Callback = function(value)
+        getgenv().aye = value
+        currentpos = HumanoidRootPart.CFrame
+        while getgenv().aye == true do
+            task.wait(0.2)
+            HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + Vector3.new(math.random(1,3),math.random(-1,1),math.random(1,3))
+            task.wait(math.random(0,2))
+            HumanoidRootPart.CFrame = currentpos
+            task.wait(math.random(0,2))
+            currentpos = HumanoidRootPart.CFrame
+        end
+    end
+})
+------------
+local Harvest = Farming:CreateSection("Harvest Plants")
+Farming:CreateLabel("Note: These are not meant to be instant by any means, it uses TweenService to bypass the teleport anti-cheat.")
+Farming:CreateToggle({
+    Name = "Harvest and Plant Tomatoes", 
+    CurrentValue = false,
+    Callback = function(value)
+        if islanduuid ~= nil then
+            getgenv().tomato = value
+                while getgenv().tomato == true do
+                    task.wait()
+                    HarvestAndPlant("tomato")
+                end
+            else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Wheat", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().wheat = value
+        while getgenv().wheat == true do
+            task.wait()
+            HarvestAndPlant("wheat")
+            end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Potatoes", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().potato = value
+        while getgenv().potato == true do
+            task.wait()
+            HarvestAndPlant("potato")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Carrots", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().carrot = value
+        while getgenv().carrot == true do
+            task.wait()
+            HarvestAndPlant("carrot")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Spinach", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().spinach = value
+        while getgenv().spinach == true do
+            task.wait()
+            HarvestAndPlant("spinach")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Radish", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().radish = value
+        while getgenv().radish == true do
+            task.wait()
+            HarvestAndPlant("radish")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Pumpkins", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().pumpkin = value
+        while getgenv().pumpkin == true do
+            task.wait()
+            HarvestAndPlant("pumpkin")   
+            end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Onions", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().onion = value
+        while getgenv().onion == true do
+            task.wait()
+            HarvestAndPlant("onion")    
+            end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+Farming:CreateToggle({
+    Name = "Harvest and Plant Watermelon", 
+    CurrentValue = false,
+    Callback = function(value)
+    if islanduuid ~= nil then
+        getgenv().watermelon = value
+        while getgenv().watermelon == true do
+            task.wait()
+            HarvestAndPlant("watermelon")
+        end
+        else
+            if value ~= false then
+                Library:Notify("Error!","Please Grab Island UUID!")
+            end
+        end
+    end
+})
+------------
+local Stick = Mobs:CreateSection("Sticky")
+Mobs:CreateButton({
+    Name = "Travel to Cletus", 
+    Callback = function()
+        if game:GetService("Workspace").WildernessIsland.Entities:FindFirstChild("cletusHalloween") ~= nil then
+                local Info = TweenInfo.new(25,Enum.EasingStyle.Linear,Enum.EasingDirection.In)
+                local Tweens = {
+                    CFrame = game:GetService("Workspace").WildernessIsland.Entities.cletusHalloween.HumanoidRootPart.CFrame
+                }
+                local Tween = TweenService:Create(HumanoidRootPart,Info,Tweens)
+                Tween:Play()
+        else
+            if game:GetService("Workspace").WildernessIsland.Entities:FindFirstChild("cletusHalloween") == nil then
+                if value ~= false then
+                    Library:Notify("Notice","You can't do this right now.")
+                end
+            end
+        end
+    end
+})
+
+Mobs:CreateToggle({
+    Name = "Stick to Cletus", 
+    Callback = function(value)
+        if game:GetService("Workspace").WildernessIsland.Entities:FindFirstChild("cletusHalloween") ~= nil then
+            getgenv().aye2 = value
+            while getgenv().aye2 == true do
+                task.wait()
+                local Info = TweenInfo.new(4,Enum.EasingStyle.Linear,Enum.EasingDirection.In)
+                local Tweens = {
+                    CFrame = game:GetService("Workspace").WildernessIsland.Entities.cletusHalloween.HumanoidRootPart.CFrame
+                }
+                local Tween = TweenService:Create(HumanoidRootPart,Info,Tweens)
+                Tween:Play()
+            end
+        else
+            if game:GetService("Workspace").WildernessIsland.Entities:FindFirstChild("cletusHalloween") == nil then
+                if value ~= false then
+                    Library:Notify("Notice","You can't do this right now.")
+                end
+            end
+        end
+    end
+})
+
+------------
+local TP = Teleport:CreateSection("Players")
+for _, x in pairs(game:GetService("Players"):GetChildren()) do
+    if x.Name ~= player.Name then
+        Teleport:CreateButton({
+            Name = "Teleport To: "..x.Name, Callback = function()
+                Library:Notify("Teleporting!","ETA: 15s")
+                local Info = TweenInfo.new(15,Enum.EasingStyle.Linear,Enum.EasingDirection.In)
+                local Tweens = {
+                    CFrame = x.Character.HumanoidRootPart.CFrame
+                }
+                local Tween = TweenService:Create(HumanoidRootPart,Info,Tweens)
+                Tween:Play()
+            end,
+        })
+    end
+end
+------------
